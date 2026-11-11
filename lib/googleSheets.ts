@@ -1,7 +1,7 @@
-import { google } from "googleapis";
 import { uploadBase64ToR2 } from "./r2";
 
-function getSheetsClient() {
+async function getSheetsClient() {
+  const { google } = await import("googleapis");
   const auth = new google.auth.GoogleAuth({
     credentials: {
       client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
@@ -22,7 +22,7 @@ const SETTINGS_RANGE = "Settings!A:B";
 
 export async function checkAndRegisterUser(email: string, name: string) {
   if (!SPREADSHEET_ID) return "observer";
-  const sheets = getSheetsClient();
+  const sheets = await getSheetsClient();
 
   try {
     const response = await sheets.spreadsheets.values.get({
@@ -56,7 +56,7 @@ export async function checkAndRegisterUser(email: string, name: string) {
 
 export async function getProjects() {
   if (!SPREADSHEET_ID) return [];
-  const sheets = getSheetsClient();
+  const sheets = await getSheetsClient();
 
   try {
     const res = await sheets.spreadsheets.values.get({
@@ -134,7 +134,7 @@ export async function saveProject(
   }
 ) {
   if (!SPREADSHEET_ID) throw new Error("GOOGLE_SHEET_ID missing");
-  const sheets = getSheetsClient();
+  const sheets = await getSheetsClient();
 
   try {
     await sheets.spreadsheets.values.update({
@@ -221,7 +221,7 @@ export async function saveProject(
 export async function getJobSettings() {
   const defaultJobs = ["REWORK_160_150", "REPLACE_CONNECTOR", "ASSY_UART", "ASSY_TES_BOX", "RETURN"];
   if (!SPREADSHEET_ID) return defaultJobs;
-  const sheets = getSheetsClient();
+  const sheets = await getSheetsClient();
 
   try {
     const res = await sheets.spreadsheets.values.get({
@@ -242,7 +242,7 @@ export async function getJobSettings() {
 
 export async function saveJobSettings(jobs: string[]) {
   if (!SPREADSHEET_ID) return;
-  const sheets = getSheetsClient();
+  const sheets = await getSheetsClient();
 
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId: SPREADSHEET_ID,
