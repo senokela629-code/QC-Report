@@ -2,6 +2,11 @@ import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { checkAndRegisterUser } from "@/lib/googleSheets";
 
+// Pastikan NEXTAUTH_URL memiliki fallback saat build di Vercel
+if (!process.env.NEXTAUTH_URL) {
+  process.env.NEXTAUTH_URL = "https://qc-report-pi.vercel.app";
+}
+
 const handler = NextAuth({
   providers: [
     GoogleProvider({
