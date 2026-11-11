@@ -1,17 +1,19 @@
 import { google } from "googleapis";
 import { uploadBase64ToR2 } from "./r2";
 
-const auth = new google.auth.GoogleAuth({
-  credentials: {
-    client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-    private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
-  },
-  scopes: [
-    "https://www.googleapis.com/auth/spreadsheets"
-  ],
-});
+function getSheetsClient() {
+  const auth = new google.auth.GoogleAuth({
+    credentials: {
+      client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
+      private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+    },
+    scopes: [
+      "https://www.googleapis.com/auth/spreadsheets"
+    ],
+  });
+  return google.sheets({ version: "v4", auth });
+}
 
-const sheets = google.sheets({ version: "v4", auth });
 const SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID;
 
 const USERS_RANGE = "Users!A:D";
@@ -20,6 +22,7 @@ const SETTINGS_RANGE = "Settings!A:B";
 
 export async function checkAndRegisterUser(email: string, name: string) {
   if (!SPREADSHEET_ID) return "observer";
+  const sheets = getSheetsClient();
 
   try {
     const response = await sheets.spreadsheets.values.get({
@@ -53,6 +56,8 @@ export async function checkAndRegisterUser(email: string, name: string) {
 
 export async function getProjects() {
   if (!SPREADSHEET_ID) return [];
+  const sheets = getSheetsClient();
+
   try {
     const res = await sheets.spreadsheets.values.get({
       spreadsheetId: SPREADSHEET_ID,
@@ -64,7 +69,6 @@ export async function getProjects() {
     for (let i = 1; i < rows.length; i++) {
       const r = rows[i];
       if (r[0]) {
-        // Cek kolom J (index 9) atau fallback ke kolom lain jika row pendek
         const dokumentasiVal = r[9] || r[4] || "";
         let items = [];
 
@@ -83,7 +87,6 @@ export async function getProjects() {
             items = [];
           }
         } else if (dokumentasiVal.length > 0) {
-          // Fallback untuk URL koma
           const urls = dokumentasiVal.split(",").map((u: string) => u.trim()).filter(Boolean);
           items = urls.map((url: string, idx: number) => ({
             id: (idx + 1).toString(),
@@ -131,6 +134,7 @@ export async function saveProject(
   }
 ) {
   if (!SPREADSHEET_ID) throw new Error("GOOGLE_SHEET_ID missing");
+  const sheets = getSheetsClient();
 
   try {
     await sheets.spreadsheets.values.update({
@@ -217,6 +221,8 @@ export async function saveProject(
 export async function getJobSettings() {
   const defaultJobs = ["REWORK_160_150", "REPLACE_CONNECTOR", "ASSY_UART", "ASSY_TES_BOX", "RETURN"];
   if (!SPREADSHEET_ID) return defaultJobs;
+  const sheets = getSheetsClient();
+
   try {
     const res = await sheets.spreadsheets.values.get({
       spreadsheetId: SPREADSHEET_ID,
@@ -236,6 +242,8 @@ export async function getJobSettings() {
 
 export async function saveJobSettings(jobs: string[]) {
   if (!SPREADSHEET_ID) return;
+  const sheets = getSheetsClient();
+
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId: SPREADSHEET_ID,
     range: SETTINGS_RANGE,
