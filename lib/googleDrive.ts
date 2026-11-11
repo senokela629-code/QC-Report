@@ -1,4 +1,3 @@
-import { google } from "googleapis";
 import { Readable } from "stream";
 
 const FOLDER_ID = process.env.GOOGLE_DRIVE_FOLDER_ID;
@@ -21,7 +20,9 @@ export async function uploadBase64ToDriveWithServiceAccount(
     const mimeType = matches[1];
     const buffer = Buffer.from(matches[2], "base64");
 
-    // Menggunakan GoogleAuth Service Account langsung yang memiliki akses penuh ke folder Google Drive user yang dishare
+    // Dynamic import agar aman dari error build / prerender Vercel
+    const { google } = await import("googleapis");
+
     const auth = new google.auth.GoogleAuth({
       credentials: {
         client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
@@ -58,7 +59,6 @@ export async function uploadBase64ToDriveWithServiceAccount(
     const fileId = response.data.id;
     if (!fileId) throw new Error("Gagal mendapatkan file ID dari Google Drive");
 
-    // Set permission public so anyone with link can view/preview original quality image
     try {
       await drive.permissions.create({
         fileId: fileId,
@@ -71,7 +71,6 @@ export async function uploadBase64ToDriveWithServiceAccount(
       console.warn("Warning setting public permission:", permErr);
     }
 
-    // Return exact web view link
     return `https://drive.google.com/file/d/${fileId}/view?usp=drive_link`;
   } catch (error: any) {
     console.error("Error uploading to Google Drive via Service Account:", error);
