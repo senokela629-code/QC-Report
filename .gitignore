@@ -1,0 +1,8 @@
+/node_modules
+/.next
+/out
+.env
+.env*.local
+.DS_Store
+photohistory-e5ff72c2030f.json
+*.json
