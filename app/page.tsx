@@ -343,7 +343,7 @@ export default function Home() {
                 className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl font-semibold transition text-sm shadow-sm"
               >
                 <UserCheck size={18} />
-                Minta Akses
+                LOGIN
               </button>
             ) : (
               <div className="flex items-center gap-3">
