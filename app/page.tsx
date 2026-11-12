@@ -161,7 +161,9 @@ export default function Home() {
         photo: "",
         jobs: [],
         optionQC: "Good",
-        ngReasons: { speedMati: false, blank: false, komponenKurang: false, komponenDetail: "" },
+        ngReasons: {},
+        kurangKomponen: false,
+        kurangKomponenDetail: "",
         note: ""
       }
     ]);
