@@ -13,10 +13,7 @@ interface QCItem {
   jobs: string[];
   optionQC: "Good" | "Not Good";
   ngReasons: {
-    speedMati: boolean;
-    blank: boolean;
-    komponenKurang: boolean;
-    komponenDetail: string;
+    [key: string]: any; // Ubah agar menerima key string secara dinamis
   };
   note: string;
 }
