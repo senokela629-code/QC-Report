@@ -13,8 +13,10 @@ interface QCItem {
   jobs: string[];
   optionQC: "Good" | "Not Good";
   ngReasons: {
-    [key: string]: any; // Ubah agar menerima key string secara dinamis
+    [key: string]: any;
   };
+  kurangKomponen: boolean;
+  kurangKomponenDetail: string;
   note: string;
 }
 
@@ -38,7 +40,7 @@ export default function Home() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [jobList, setJobList] = useState<string[]>(["REWORK_160_150", "REPLACE_CONNECTOR", "ASSY_UART", "ASSY_TES_BOX", "RETURN"]);
-  const [ngReasonList, setNgReasonList] = useState<string[]>(["SPEED MATI", "BLANK", "KOMPONEN KURANG"]);
+  const [ngReasonList, setNgReasonList] = useState<string[]>(["SPEED MATI", "BLANK", "LECET DIKIT GA NGARUH"]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
@@ -133,7 +135,9 @@ export default function Home() {
         photo: "",
         jobs: [],
         optionQC: "Good",
-        ngReasons: { speedMati: false, blank: false, komponenKurang: false, komponenDetail: "" },
+        ngReasons: {},
+        kurangKomponen: false,
+        kurangKomponenDetail: "",
         note: ""
       }
     ]);
@@ -668,27 +672,33 @@ export default function Home() {
                                     />
                                     {reason}
                                   </label>
-
-                                  {/* Input detail otomatis muncul jika alasan mengandung kata KOMPONEN atau sejenisnya dan dicentang */}
-                                  {reason.toLowerCase().includes("komponen") && isChecked && (
-                                    <input
-                                      type="text"
-                                      placeholder="Beritahu komponen apa yang kurang"
-                                      value={item.ngReasons?.[`${reason}_detail`] || ""}
-                                      onChange={(e) => {
-                                        handleItemChange(index, "ngReasons", {
-                                          ...(item.ngReasons || {}),
-                                          [`${reason}_detail`]: e.target.value,
-                                        });
-                                      }}
-                                      className="w-full bg-white border border-rose-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-rose-500 mt-1"
-                                    />
-                                  )}
                                 </div>
                               );
                             })}
                           </div>
                         )}
+
+                        {/* Kotak Komponen Kurang Universal (Didalam card item QC) */}
+                        <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 space-y-2 mt-2">
+                          <label className="flex items-center gap-2 text-xs text-amber-900 font-semibold cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={Boolean(item.kurangKomponen)}
+                              onChange={(e) => handleItemChange(index, "kurangKomponen", e.target.checked)}
+                              className="rounded text-amber-600 focus:ring-amber-500 w-4 h-4"
+                            />
+                            Komponen Kurang (Universal)
+                          </label>
+                          {item.kurangKomponen && (
+                            <input
+                              type="text"
+                              placeholder="Detail komponen yang kurang..."
+                              value={item.kurangKomponenDetail || ""}
+                              onChange={(e) => handleItemChange(index, "kurangKomponenDetail", e.target.value)}
+                              className="w-full bg-white border border-amber-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                            />
+                          )}
+                        </div>
                       </div>
                     </div>
 
@@ -834,6 +844,12 @@ export default function Home() {
                           {item.note && (
                             <div className="text-slate-500 italic">
                               &ldquo;{item.note}&rdquo;
+                            </div>
+                          )}
+
+                          {item.kurangKomponen && (
+                            <div className="text-amber-800 font-medium bg-amber-50 p-1.5 rounded-lg mb-1">
+                              <div><strong>Komponen Kurang:</strong> {item.kurangKomponenDetail || "Ya"}</div>
                             </div>
                           )}
                         </div>
