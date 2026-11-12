@@ -3,7 +3,7 @@
 import { useSession, signIn, signOut } from "next-auth/react";
 import { useState, useEffect } from "react";
 import { 
-  Shield, Upload, LogOut, UserCheck, Eye, Plus, Trash2, Edit, CheckCircle, 
+  Shield, ShieldCheck, Upload, LogOut, UserCheck, Eye, Plus, Trash2, Edit, CheckCircle, 
   XCircle, FileText, Calendar, Package, ArrowRight, Settings, Image as ImageIcon, Camera, X
 } from "lucide-react";
 
@@ -312,8 +312,8 @@ export default function Home() {
       <header className="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-xs">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="bg-indigo-600 text-white font-black px-3 py-1.5 rounded-xl text-lg shadow-sm">
-              GR
+            <div className="bg-indigo-600 text-white p-2 rounded-xl flex items-center justify-center shadow-sm">
+              <ShieldCheck size={22} className="stroke-[2.5]" />
             </div>
             <div>
               <span className="font-extrabold text-lg text-slate-900 tracking-tight">GR-QC Report</span>
