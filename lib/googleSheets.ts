@@ -218,9 +218,11 @@ export async function saveProject(
   }
 }
 
-export async function getJobSettings() {
+// Tambahkan / perbarui fungsi ini di lib/googleSheets.ts
+export async function getAppSettings() {
   const defaultJobs = ["REWORK_160_150", "REPLACE_CONNECTOR", "ASSY_UART", "ASSY_TES_BOX", "RETURN"];
-  if (!SPREADSHEET_ID) return defaultJobs;
+  const defaultNgReasons = ["SPEED MATI", "BLANK", "KOMPONEN KURANG"];
+  if (!SPREADSHEET_ID) return { jobs: defaultJobs, ngReasons: defaultNgReasons };
   const sheets = await getSheetsClient();
 
   try {
@@ -229,46 +231,68 @@ export async function getJobSettings() {
       range: SETTINGS_RANGE,
     });
     const rows = res.data.values || [];
+    let jobs = defaultJobs;
+    let ngReasons = defaultNgReasons;
+
     for (let i = 1; i < rows.length; i++) {
       if (rows[i][0] === "JOB_LIST") {
-        return JSON.parse(rows[i][1]);
+        try { jobs = JSON.parse(rows[i][1]); } catch {}
+      }
+      if (rows[i][0] === "NG_REASON_LIST") {
+        try { ngReasons = JSON.parse(rows[i][1]); } catch {}
       }
     }
-    return defaultJobs;
+    return { jobs, ngReasons };
   } catch {
-    return defaultJobs;
+    return { jobs: defaultJobs, ngReasons: defaultNgReasons };
   }
 }
 
-export async function saveJobSettings(jobs: string[]) {
+export async function saveAppSettings(jobs: string[], ngReasons: string[]) {
   if (!SPREADSHEET_ID) return;
   const sheets = await getSheetsClient();
-
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId: SPREADSHEET_ID,
     range: SETTINGS_RANGE,
   });
   const rows = res.data.values || [];
-  let rowIndex = -1;
-  for (let i = 1; i < rows.length; i++) {
-    if (rows[i][0] === "JOB_LIST") {
-      rowIndex = i + 1;
-      break;
+
+  async function saveKey(key: string, value: string) {
+    let rowIndex = -1;
+    for (let i = 1; i < rows.length; i++) {
+      if (rows[i][0] === key) {
+        rowIndex = i + 1;
+        break;
+      }
+    }
+    if (rowIndex > 0) {
+      await sheets.spreadsheets.values.update({
+        spreadsheetId: SPREADSHEET_ID,
+        range: `Settings!A${rowIndex}:B${rowIndex}`,
+        valueInputOption: "USER_ENTERED",
+        requestBody: { values: [[key, value]] },
+      });
+    } else {
+      await sheets.spreadsheets.values.append({
+        spreadsheetId: SPREADSHEET_ID,
+        range: SETTINGS_RANGE,
+        valueInputOption: "USER_ENTERED",
+        requestBody: { values: [[key, value]] },
+      });
     }
   }
-  if (rowIndex > 0) {
-    await sheets.spreadsheets.values.update({
-      spreadsheetId: SPREADSHEET_ID,
-      range: `Settings!A${rowIndex}:B${rowIndex}`,
-      valueInputOption: "USER_ENTERED",
-      requestBody: { values: [["JOB_LIST", JSON.stringify(jobs)]] },
-    });
-  } else {
-    await sheets.spreadsheets.values.append({
-      spreadsheetId: SPREADSHEET_ID,
-      range: SETTINGS_RANGE,
-      valueInputOption: "USER_ENTERED",
-      requestBody: { values: [["JOB_LIST", JSON.stringify(jobs)]] },
-    });
-  }
+
+  await saveKey("JOB_LIST", JSON.stringify(jobs));
+  await saveKey("NG_REASON_LIST", JSON.stringify(ngReasons));
+}
+
+// Wrapper agar fungsi lama tidak error
+export async function getJobSettings() {
+  const settings = await getAppSettings();
+  return settings.jobs;
+}
+
+export async function saveJobSettings(jobs: string[]) {
+  const settings = await getAppSettings();
+  await saveAppSettings(jobs, settings.ngReasons);
 }

@@ -41,6 +41,7 @@ export default function Home() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [jobList, setJobList] = useState<string[]>(["REWORK_160_150", "REPLACE_CONNECTOR", "ASSY_UART", "ASSY_TES_BOX", "RETURN"]);
+  const [ngReasonList, setNgReasonList] = useState<string[]>(["SPEED MATI", "BLANK", "KOMPONEN KURANG"]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
@@ -51,6 +52,7 @@ export default function Home() {
 
   const [isSettingOpen, setIsSettingOpen] = useState(false);
   const [newJobInput, setNewJobInput] = useState("");
+  const [newNgReasonInput, setNewNgReasonInput] = useState("");
 
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
@@ -77,8 +79,9 @@ export default function Home() {
     try {
       const res = await fetch("/api/settings");
       const data = await res.json();
-      if (data.success && data.jobs) {
-        setJobList(data.jobs);
+      if (data.success) {
+        if (data.jobs) setJobList(data.jobs);
+        if (data.ngReasons) setNgReasonList(data.ngReasons);
       }
     } catch (err) {
       console.error(err);
@@ -270,20 +273,34 @@ export default function Home() {
     const updatedJobs = [...jobList, newJobInput.trim().toUpperCase().replace(/\s+/g, "_")];
     setJobList(updatedJobs);
     setNewJobInput("");
-    await fetch("/api/settings", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ jobs: updatedJobs }),
-    });
+    await saveAllSettings(updatedJobs, ngReasonList);
   };
 
   const handleDeleteJobSetting = async (jobToRemove: string) => {
     const updatedJobs = jobList.filter((j) => j !== jobToRemove);
     setJobList(updatedJobs);
+    await saveAllSettings(updatedJobs, ngReasonList);
+  };
+
+  const handleAddNgReasonSetting = async () => {
+    if (!newNgReasonInput.trim()) return;
+    const updatedReasons = [...ngReasonList, newNgReasonInput.trim().toUpperCase()];
+    setNgReasonList(updatedReasons);
+    setNewNgReasonInput("");
+    await saveAllSettings(jobList, updatedReasons);
+  };
+
+  const handleDeleteNgReasonSetting = async (reasonToRemove: string) => {
+    const updatedReasons = ngReasonList.filter((r) => r !== reasonToRemove);
+    setNgReasonList(updatedReasons);
+    await saveAllSettings(jobList, updatedReasons);
+  };
+
+  const saveAllSettings = async (jobs: string[], ngReasons: string[]) => {
     await fetch("/api/settings", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ jobs: updatedJobs }),
+      body: JSON.stringify({ jobs, ngReasons }),
     });
   };
 
@@ -635,43 +652,44 @@ export default function Home() {
                         {item.optionQC === "Not Good" && (
                           <div className="bg-rose-50 border border-rose-200 rounded-xl p-3 space-y-2">
                             <span className="text-[11px] font-bold text-rose-800 block">Alasan Not Good:</span>
-                            <label className="flex items-center gap-2 text-xs text-rose-900 font-medium">
-                              <input
-                                type="checkbox"
-                                checked={item.ngReasons.speedMati}
-                                onChange={(e) => handleItemChange(index, "ngReasons", { ...item.ngReasons, speedMati: e.target.checked })}
-                                className="rounded text-rose-600 focus:ring-rose-500"
-                              />
-                              SPEED MATI
-                            </label>
-                            <label className="flex items-center gap-2 text-xs text-rose-900 font-medium">
-                              <input
-                                type="checkbox"
-                                checked={item.ngReasons.blank}
-                                onChange={(e) => handleItemChange(index, "ngReasons", { ...item.ngReasons, blank: e.target.checked })}
-                                className="rounded text-rose-600 focus:ring-rose-500"
-                              />
-                              BLANK
-                            </label>
-                            <label className="flex items-center gap-2 text-xs text-rose-900 font-medium">
-                              <input
-                                type="checkbox"
-                                checked={item.ngReasons.komponenKurang}
-                                onChange={(e) => handleItemChange(index, "ngReasons", { ...item.ngReasons, komponenKurang: e.target.checked })}
-                                className="rounded text-rose-600 focus:ring-rose-500"
-                              />
-                              KOMPONEN KURANG
-                            </label>
+                            {ngReasonList.map((reason) => {
+                              const isChecked = Boolean(item.ngReasons?.[reason]);
+                              return (
+                                <div key={reason} className="space-y-1">
+                                  <label className="flex items-center gap-2 text-xs text-rose-900 font-medium cursor-pointer">
+                                    <input
+                                      type="checkbox"
+                                      checked={isChecked}
+                                      onChange={(e) => {
+                                        const checked = e.target.checked;
+                                        handleItemChange(index, "ngReasons", {
+                                          ...(item.ngReasons || {}),
+                                          [reason]: checked,
+                                        });
+                                      }}
+                                      className="rounded text-rose-600 focus:ring-rose-500 w-4 h-4"
+                                    />
+                                    {reason}
+                                  </label>
 
-                            {item.ngReasons.komponenKurang && (
-                              <input
-                                type="text"
-                                placeholder="Beritahu komponen apa yang kurang"
-                                value={item.ngReasons.komponenDetail}
-                                onChange={(e) => handleItemChange(index, "ngReasons", { ...item.ngReasons, komponenDetail: e.target.value })}
-                                className="w-full bg-white border border-rose-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-rose-500"
-                              />
-                            )}
+                                  {/* Input detail otomatis muncul jika alasan mengandung kata KOMPONEN atau sejenisnya dan dicentang */}
+                                  {reason.toLowerCase().includes("komponen") && isChecked && (
+                                    <input
+                                      type="text"
+                                      placeholder="Beritahu komponen apa yang kurang"
+                                      value={item.ngReasons?.[`${reason}_detail`] || ""}
+                                      onChange={(e) => {
+                                        handleItemChange(index, "ngReasons", {
+                                          ...(item.ngReasons || {}),
+                                          [`${reason}_detail`]: e.target.value,
+                                        });
+                                      }}
+                                      className="w-full bg-white border border-rose-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-rose-500 mt-1"
+                                    />
+                                  )}
+                                </div>
+                              );
+                            })}
                           </div>
                         )}
                       </div>
@@ -804,11 +822,15 @@ export default function Home() {
 
                           {item.optionQC === "Not Good" && item.ngReasons && (
                             <div className="text-rose-700 font-medium bg-rose-50 p-1.5 rounded-lg mb-1">
-                              <div><strong>Alasan:</strong> {[
-                                item.ngReasons.speedMati && "Speed Mati",
-                                item.ngReasons.blank && "Blank",
-                                item.ngReasons.komponenKurang && `Komponen Kurang (${item.ngReasons.komponenDetail || ""})`
-                              ].filter(Boolean).join(", ") || "-"}</div>
+                              <div><strong>Alasan:</strong> {
+                                Object.entries(item.ngReasons)
+                                  .filter(([key, val]) => val === true && !key.endsWith("_detail"))
+                                  .map(([key]) => {
+                                    const detail = item.ngReasons[`${key}_detail`];
+                                    return detail ? `${key} (${detail})` : key;
+                                  })
+                                  .join(", ") || "-"
+                              }</div>
                             </div>
                           )}
 
@@ -839,11 +861,11 @@ export default function Home() {
 
       {isSettingOpen && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl max-w-md w-full flex flex-col shadow-2xl overflow-hidden my-auto">
+          <div className="bg-white rounded-3xl max-w-lg w-full flex flex-col shadow-2xl overflow-hidden my-auto max-h-[85vh]">
             <div className="px-6 py-4 bg-slate-900 text-white flex items-center justify-between shrink-0">
               <h3 className="font-extrabold text-lg flex items-center gap-2">
                 <Settings size={20} className="text-indigo-400" />
-                Pengaturan List Job QC
+                Pengaturan Sistem QC
               </h3>
               <button
                 onClick={() => setIsSettingOpen(false)}
@@ -853,39 +875,69 @@ export default function Home() {
               </button>
             </div>
 
-            <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  placeholder="Nama Job Baru (misal: ASSY_LCD)"
-                  value={newJobInput}
-                  onChange={(e) => setNewJobInput(e.target.value)}
-                  className="flex-1 bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
-                <button
-                  onClick={handleAddJobSetting}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition shadow-2xs"
-                >
-                  Tambah
-                </button>
+            <div className="p-6 space-y-6 overflow-y-auto flex-1">
+              {/* Bagian 1: List Job */}
+              <div className="space-y-3">
+                <h4 className="font-bold text-slate-800 text-sm border-b pb-1">Daftar List Job QC</h4>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="Nama Job Baru (misal: ASSY_LCD)"
+                    value={newJobInput}
+                    onChange={(e) => setNewJobInput(e.target.value)}
+                    className="flex-1 bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                  <button
+                    onClick={handleAddJobSetting}
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition"
+                  >
+                    Tambah Job
+                  </button>
+                </div>
+                <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
+                  {jobList.map((job) => (
+                    <div key={job} className="flex items-center justify-between bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl text-xs font-medium text-slate-800">
+                      <span>{job}</span>
+                      {jobList.length > 1 && (
+                        <button onClick={() => handleDeleteJobSetting(job)} className="text-slate-400 hover:text-red-600 p-1 rounded transition">
+                          <Trash2 size={14} />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
 
-              <div className="space-y-2">
-                <span className="text-xs font-bold text-slate-500 uppercase">Daftar Job Aktif:</span>
-                {jobList.map((job) => (
-                  <div key={job} className="flex items-center justify-between bg-slate-50 border border-slate-200 px-3 py-2 rounded-xl text-xs font-medium text-slate-800">
-                    <span>{job}</span>
-                    {jobList.length > 1 && (
-                      <button
-                        onClick={() => handleDeleteJobSetting(job)}
-                        className="text-slate-400 hover:text-red-600 p-1 rounded transition"
-                        title="Hapus Job"
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    )}
-                  </div>
-                ))}
+              {/* Bagian 2: List Alasan Not Good */}
+              <div className="space-y-3">
+                <h4 className="font-bold text-slate-800 text-sm border-b pb-1">Daftar Alasan Not Good</h4>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="Alasan Baru (misal: LECET_BODY)"
+                    value={newNgReasonInput}
+                    onChange={(e) => setNewNgReasonInput(e.target.value)}
+                    className="flex-1 bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-rose-500"
+                  />
+                  <button
+                    onClick={handleAddNgReasonSetting}
+                    className="bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition"
+                  >
+                    Tambah Alasan
+                  </button>
+                </div>
+                <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
+                  {ngReasonList.map((reason) => (
+                    <div key={reason} className="flex items-center justify-between bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl text-xs font-medium text-slate-800">
+                      <span>{reason}</span>
+                      {ngReasonList.length > 1 && (
+                        <button onClick={() => handleDeleteNgReasonSetting(reason)} className="text-slate-400 hover:text-red-600 p-1 rounded transition">
+                          <Trash2 size={14} />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
 
