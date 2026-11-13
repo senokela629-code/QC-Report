@@ -922,12 +922,23 @@ export default function Home() {
                       <div className="flex-1 space-y-2 w-full">
                         <div className="flex items-center justify-between">
                           <h4 className="font-bold text-slate-900 text-sm">Item #{item.id}</h4>
-                          <span className={`px-2.5 py-1 rounded-full text-xs font-bold flex items-center gap-1 ${
-                            item.optionQC === "Good" ? "bg-emerald-100 text-emerald-800" : "bg-rose-100 text-rose-800"
-                          }`}>
-                            {item.optionQC === "Good" ? <CheckCircle size={12} /> : <XCircle size={12} />}
-                            {item.optionQC}
-                          </span>
+                          
+                          {/* Status Good/Not Good & Badge Khusus RETURN di bawahnya */}
+                          <div className="flex flex-col items-end gap-1.5">
+                            <span className={`px-2.5 py-1 rounded-full text-xs font-bold flex items-center gap-1 ${
+                              item.optionQC === "Good" ? "bg-emerald-100 text-emerald-800" : "bg-rose-100 text-rose-800"
+                            }`}>
+                              {item.optionQC === "Good" ? <CheckCircle size={12} /> : <XCircle size={12} />}
+                              {item.optionQC}
+                            </span>
+
+                            {/* Badge Khusus untuk Job RETURN */}
+                            {item.jobs && item.jobs.includes("RETURN") && (
+                              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-800 border border-purple-200 shadow-2xs">
+                                RETURN
+                              </span>
+                            )}
+                          </div>
                         </div>
 
                         {/* Badge Type (Ungu untuk AE, Amber untuk BA) */}
@@ -941,9 +952,12 @@ export default function Home() {
                           </span>
                         </div>
 
-                        {/* Daftar Job */}
+                        {/* Daftar Job Lainnya (RETURN disaring karena sudah ada badge khusus) */}
                         <div className="text-xs text-slate-700">
-                          <strong className="text-slate-900">Job:</strong> {item.jobs && item.jobs.length > 0 ? item.jobs.join(", ") : "-"}
+                          <strong className="text-slate-900">Job:</strong>{" "}
+                          {item.jobs && item.jobs.filter(j => j !== "RETURN").length > 0 
+                            ? item.jobs.filter(j => j !== "RETURN").join(", ") 
+                            : (item.jobs?.length === 1 && item.jobs.includes("RETURN") ? "-" : "-")}
                         </div>
 
                         {/* Alasan Not Good (Jika ada) */}
