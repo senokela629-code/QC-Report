@@ -55,6 +55,7 @@ export default function Home() {
   const [newNgReasonInput, setNewNgReasonInput] = useState("");
 
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [isLegendOpen, setIsLegendOpen] = useState(true);
 
   useEffect(() => {
     fetchProjects();
@@ -393,49 +394,94 @@ export default function Home() {
           )}
         </div>
 
-        <div className="mb-6 flex items-center justify-between">
-          <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-            <Package className="text-indigo-600" size={20} />
-            Daftar Project QC ({projects.length})
-          </h2>
-          <span className="text-xs font-medium text-slate-500 bg-slate-200/60 px-3 py-1 rounded-full">
-            Klik card untuk melihat detail
-          </span>
-        </div>
-
-        {/* Card Panduan / Legenda Keterangan QC */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-4 mb-6 shadow-xs space-y-3">
-          <div className="flex items-center gap-2 text-slate-800 font-bold text-sm">
-            <Info className="text-indigo-600" size={18} />
-            <span>Keterangan Status & Alasan QC</span>
+        {/* Card Panduan / Legenda (Dropdown & Kategori Rapi) */}
+        <div className="bg-white border border-slate-200 rounded-2xl p-4 mb-6 shadow-xs space-y-4">
+          <div 
+            onClick={() => setIsLegendOpen(!isLegendOpen)}
+            className="flex items-center justify-between cursor-pointer select-none"
+          >
+            <div className="flex items-center gap-2 text-slate-800 font-bold text-sm">
+              <Info className="text-indigo-600" size={18} />
+              <span>Keterangan Status, Alasan QC & Model Type</span>
+            </div>
+            <button 
+              type="button" 
+              className="text-xs font-semibold text-slate-500 hover:text-indigo-600 flex items-center gap-1.5 transition bg-slate-100 hover:bg-slate-200/70 px-3 py-1.5 rounded-xl"
+            >
+              <span>{isLegendOpen ? "Sembunyikan" : "Tampilkan"}</span>
+              <span className={`transform transition-transform duration-200 ${isLegendOpen ? "rotate-180" : ""}`}>▼</span>
+            </button>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
-            <div className="bg-emerald-50 border border-emerald-200 p-2.5 rounded-xl flex items-center gap-2.5">
-              <span className="w-3.5 h-3.5 rounded-full bg-emerald-500 shrink-0 shadow-xs"></span>
-              <div>
-                <strong className="text-emerald-900 block font-bold">GOOD</strong>
-                <span className="text-emerald-700">Produk normal / lulus QC</span>
+
+          {isLegendOpen && (
+            <div className="space-y-4 pt-3 border-t border-slate-100 text-xs animate-fadeIn">
+              
+              {/* Baris 1: Status QC */}
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-2 items-center">
+                <div className="md:col-span-3 font-extrabold text-slate-700 uppercase tracking-wider text-[11px]">
+                  Status QC
+                </div>
+                <div className="md:col-span-9 flex flex-wrap gap-2.5">
+                  <div className="bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl flex items-center gap-2 shadow-2xs">
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0"></span>
+                    <span className="font-bold text-emerald-900">GOOD:</span>
+                    <span className="text-emerald-700">Produk normal / lulus QC</span>
+                  </div>
+                  <div className="bg-rose-50 border border-rose-200 px-3 py-1.5 rounded-xl flex items-center gap-2 shadow-2xs">
+                    <span className="w-2.5 h-2.5 rounded-full bg-rose-500 shrink-0"></span>
+                    <span className="font-bold text-rose-900">NOT GOOD:</span>
+                    <span className="text-rose-700">Produk memiliki kendala</span>
+                  </div>
+                </div>
               </div>
-            </div>
 
-            <div className="bg-rose-50 border border-rose-200 p-2.5 rounded-xl flex items-center gap-2.5">
-              <span className="w-3.5 h-3.5 rounded-full bg-rose-500 shrink-0 shadow-xs"></span>
-              <div>
-                <strong className="text-rose-900 block font-bold">NOT GOOD</strong>
-                <span className="text-rose-700">Produk memiliki kendala</span>
+              {/* Baris 2: Alasan Kendala (NG) */}
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-2 items-start pt-2 border-t border-slate-100/80">
+                <div className="md:col-span-3 font-extrabold text-slate-700 uppercase tracking-wider text-[11px] pt-1">
+                  Alasan Kendala (NG)
+                </div>
+                <div className="md:col-span-9 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                  <div className="bg-slate-50 border border-slate-200 p-2.5 rounded-xl shadow-2xs">
+                    <strong className="text-slate-900 block font-bold">SPEED MATI</strong>
+                    <span className="text-slate-600">Angka speed tidak bertambah</span>
+                  </div>
+                  <div className="bg-slate-50 border border-slate-200 p-2.5 rounded-xl shadow-2xs">
+                    <strong className="text-slate-900 block font-bold">BLANK</strong>
+                    <span className="text-slate-600">LCD tidak ada tampilan & lampu navigasi mati</span>
+                  </div>
+                  {/* Menampilkan alasan NG lain secara dinamis jika ada */}
+                  {ngReasonList.filter(r => r !== "SPEED MATI" && r !== "BLANK").map((reason) => (
+                    <div key={reason} className="bg-slate-50 border border-slate-200 p-2.5 rounded-xl shadow-2xs">
+                      <strong className="text-slate-900 block font-bold">{reason}</strong>
+                      <span className="text-slate-600">Kendala terdeteksi pada item</span>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
 
-            <div className="bg-slate-50 border border-slate-200 p-2.5 rounded-xl space-y-0.5">
-              <strong className="text-slate-900 block font-bold">SPEED MATI</strong>
-              <span className="text-slate-600 block">Angka speed tidak bertambah</span>
-            </div>
+              {/* Baris 3: Model Type */}
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-2 items-center pt-2 border-t border-slate-100/80">
+                <div className="md:col-span-3 font-extrabold text-slate-700 uppercase tracking-wider text-[11px]">
+                  Model Type
+                </div>
+                <div className="md:col-span-9 flex flex-wrap gap-2.5">
+                  <div className="bg-indigo-50/70 border border-indigo-200 px-3 py-1.5 rounded-xl flex items-center gap-2 shadow-2xs">
+                    <span className="font-bold text-indigo-900 bg-indigo-100 px-2 py-0.5 rounded text-[10px] border border-indigo-200">
+                      Type AE
+                    </span>
+                    <span className="font-semibold text-slate-700">| Vario 150</span>
+                  </div>
+                  <div className="bg-amber-50/70 border border-amber-200 px-3 py-1.5 rounded-xl flex items-center gap-2 shadow-2xs">
+                    <span className="font-bold text-amber-900 bg-amber-100 px-2 py-0.5 rounded text-[10px] border border-amber-200">
+                      Type BA
+                    </span>
+                    <span className="font-semibold text-slate-700">| Vario 160</span>
+                  </div>
+                </div>
+              </div>
 
-            <div className="bg-slate-50 border border-slate-200 p-2.5 rounded-xl space-y-0.5">
-              <strong className="text-slate-900 block font-bold">BLANK</strong>
-              <span className="text-slate-600 block">LCD tidak ada tampilan & lampu navigasi mati</span>
             </div>
-          </div>
+          )}
         </div>
 
         <div className="mb-6 flex items-center justify-between">
