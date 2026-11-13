@@ -4,7 +4,7 @@ import { useSession, signIn, signOut } from "next-auth/react";
 import { useState, useEffect } from "react";
 import { 
   Shield, ShieldCheck, Upload, LogOut, UserCheck, Eye, Plus, Trash2, Edit, CheckCircle, 
-  XCircle, FileText, Calendar, Package, ArrowRight, Settings, Image as ImageIcon, Camera, X
+  XCircle, FileText, Calendar, Package, ArrowRight, Settings, Image as ImageIcon, Camera, X, Info
 } from "lucide-react";
 
 interface QCItem {
@@ -388,6 +388,51 @@ export default function Home() {
               New Project
             </button>
           )}
+        </div>
+
+        <div className="mb-6 flex items-center justify-between">
+          <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+            <Package className="text-indigo-600" size={20} />
+            Daftar Project QC ({projects.length})
+          </h2>
+          <span className="text-xs font-medium text-slate-500 bg-slate-200/60 px-3 py-1 rounded-full">
+            Klik card untuk melihat detail
+          </span>
+        </div>
+
+        {/* Card Panduan / Legenda Keterangan QC */}
+        <div className="bg-white border border-slate-200 rounded-2xl p-4 mb-6 shadow-xs space-y-3">
+          <div className="flex items-center gap-2 text-slate-800 font-bold text-sm">
+            <Info className="text-indigo-600" size={18} />
+            <span>Keterangan Status & Alasan QC</span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+            <div className="bg-emerald-50 border border-emerald-200 p-2.5 rounded-xl flex items-center gap-2.5">
+              <span className="w-3.5 h-3.5 rounded-full bg-emerald-500 shrink-0 shadow-xs"></span>
+              <div>
+                <strong className="text-emerald-900 block font-bold">GOOD</strong>
+                <span className="text-emerald-700">Produk normal / lulus QC</span>
+              </div>
+            </div>
+
+            <div className="bg-rose-50 border border-rose-200 p-2.5 rounded-xl flex items-center gap-2.5">
+              <span className="w-3.5 h-3.5 rounded-full bg-rose-500 shrink-0 shadow-xs"></span>
+              <div>
+                <strong className="text-rose-900 block font-bold">NOT GOOD</strong>
+                <span className="text-rose-700">Produk bermasalah / reject</span>
+              </div>
+            </div>
+
+            <div className="bg-slate-50 border border-slate-200 p-2.5 rounded-xl space-y-0.5">
+              <strong className="text-slate-900 block font-bold">SPEED MATI</strong>
+              <span className="text-slate-600 block">Angka speed tidak bertambah</span>
+            </div>
+
+            <div className="bg-slate-50 border border-slate-200 p-2.5 rounded-xl space-y-0.5">
+              <strong className="text-slate-900 block font-bold">BLANK</strong>
+              <span className="text-slate-600 block">LCD tidak ada tampilan & lampu navigasi mati</span>
+            </div>
+          </div>
         </div>
 
         <div className="mb-6 flex items-center justify-between">
