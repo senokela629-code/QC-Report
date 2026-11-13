@@ -419,7 +419,7 @@ export default function Home() {
               <span className="w-3.5 h-3.5 rounded-full bg-rose-500 shrink-0 shadow-xs"></span>
               <div>
                 <strong className="text-rose-900 block font-bold">NOT GOOD</strong>
-                <span className="text-rose-700">Produk bermasalah / reject</span>
+                <span className="text-rose-700">Produk memiliki kendala</span>
               </div>
             </div>
 
@@ -455,88 +455,119 @@ export default function Home() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {projects.map((proj) => (
-              <div
-                key={proj.projectId}
-                onClick={() => setSelectedProject(proj)}
-                className="bg-white rounded-2xl border border-slate-200 hover:border-indigo-400 hover:shadow-lg transition cursor-pointer overflow-hidden flex flex-col group relative"
-              >
-                <div className="p-5 border-b border-slate-100 flex items-start justify-between">
-                  <div>
-                    <h3 className="font-extrabold text-slate-900 text-lg group-hover:text-indigo-600 transition">
-                      {proj.title}
-                    </h3>
-                    <div className="flex items-center gap-1.5 text-xs text-slate-500 mt-1">
-                      <Calendar size={14} />
-                      {new Date(proj.date).toLocaleDateString("id-ID", { dateStyle: "medium" })}
-                    </div>
-                  </div>
-                  <span
-                    className={`text-xs px-2.5 py-1 rounded-full font-bold ${
-                      proj.status === "Done Payment"
-                        ? "bg-emerald-100 text-emerald-800"
-                        : "bg-amber-100 text-amber-800"
-                    }`}
-                  >
-                    {proj.status}
-                  </span>
-                </div>
+            {projects.map((proj) => {
+              // Hitung rekap jumlah job dari semua item dalam project ini
+              const jobCounts: { [key: string]: number } = {};
+              proj.items.forEach((item) => {
+                if (item.jobs && Array.isArray(item.jobs)) {
+                  item.jobs.forEach((job) => {
+                    jobCounts[job] = (jobCounts[job] || 0) + 1;
+                  });
+                }
+              });
 
-                <div className="p-4 bg-slate-50/50 grid grid-cols-4 gap-2">
-                  {proj.items.slice(0, 4).map((item, idx) => (
-                    <div key={idx} className="aspect-square bg-slate-200 rounded-lg overflow-hidden relative border border-slate-200">
-                      {item.photo ? (
-                        <img src={item.photo} alt={`QC ${item.id}`} className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-slate-400">
-                          <ImageIcon size={16} />
-                        </div>
-                      )}
-                      <span className="absolute bottom-0.5 right-0.5 bg-black/60 text-white text-[9px] px-1 rounded">
-                        #{item.id}
-                      </span>
+              return (
+                <div
+                  key={proj.projectId}
+                  onClick={() => setSelectedProject(proj)}
+                  className="bg-white rounded-2xl border border-slate-200 hover:border-indigo-400 hover:shadow-lg transition cursor-pointer overflow-hidden flex flex-col group relative"
+                >
+                  <div className="p-5 border-b border-slate-100 flex items-start justify-between">
+                    <div>
+                      <h3 className="font-extrabold text-slate-900 text-lg group-hover:text-indigo-600 transition">
+                        {proj.title}
+                      </h3>
+                      <div className="flex items-center gap-1.5 text-xs text-slate-500 mt-1">
+                        <Calendar size={14} />
+                        {new Date(proj.date).toLocaleDateString("id-ID", { dateStyle: "medium" })}
+                      </div>
                     </div>
-                  ))}
-                  {proj.items.length > 4 && (
-                    <div className="aspect-square bg-slate-200 rounded-lg flex items-center justify-center text-xs font-bold text-slate-600">
-                      +{proj.items.length - 4}
-                    </div>
-                  )}
-                </div>
-
-                <div className="p-5 flex-1 flex flex-col justify-between">
-                  <div className="grid grid-cols-3 gap-2 text-center mb-4">
-                    <div className="bg-slate-100 p-2 rounded-xl">
-                      <div className="text-[10px] uppercase font-bold text-slate-500">Total</div>
-                      <div className="text-base font-black text-slate-800">{proj.totalPcs} Pcs</div>
-                    </div>
-                    <div className="bg-emerald-50 p-2 rounded-xl">
-                      <div className="text-[10px] uppercase font-bold text-emerald-600">Good</div>
-                      <div className="text-base font-black text-emerald-700">{proj.summaryGood}</div>
-                    </div>
-                    <div className="bg-rose-50 p-2 rounded-xl">
-                      <div className="text-[10px] uppercase font-bold text-rose-600">Not Good</div>
-                      <div className="text-base font-black text-rose-700">{proj.summaryNG}</div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-                    <span className="text-xs text-indigo-600 font-bold group-hover:underline flex items-center gap-1">
-                      Lihat Detail QC <ArrowRight size={14} />
+                    <span
+                      className={`text-xs px-2.5 py-1 rounded-full font-bold ${
+                        proj.status === "Done Payment"
+                          ? "bg-emerald-100 text-emerald-800"
+                          : "bg-amber-100 text-amber-800"
+                      }`}
+                    >
+                      {proj.status}
                     </span>
-                    {(userRole === "admin" || userRole === "super_admin") && (
-                      <button
-                        onClick={(e) => handleOpenEditProject(proj, e)}
-                        className="text-slate-500 hover:text-indigo-600 p-1.5 rounded-lg hover:bg-slate-100 transition"
-                        title="Edit Project"
-                      >
-                        <Edit size={16} />
-                      </button>
+                  </div>
+
+                  <div className="p-4 bg-slate-50/50 grid grid-cols-4 gap-2">
+                    {proj.items.slice(0, 4).map((item, idx) => (
+                      <div key={idx} className="aspect-square bg-slate-200 rounded-lg overflow-hidden relative border border-slate-200">
+                        {item.photo ? (
+                          <img src={item.photo} alt={`QC ${item.id}`} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-slate-400">
+                            <ImageIcon size={16} />
+                          </div>
+                        )}
+                        <span className="absolute bottom-0.5 right-0.5 bg-black/60 text-white text-[9px] px-1 rounded">
+                          #{item.id}
+                        </span>
+                      </div>
+                    ))}
+                    {proj.items.length > 4 && (
+                      <div className="aspect-square bg-slate-200 rounded-lg flex items-center justify-center text-xs font-bold text-slate-600">
+                        +{proj.items.length - 4}
+                      </div>
                     )}
                   </div>
+
+                  <div className="p-5 flex-1 flex flex-col justify-between">
+                    <div className="space-y-3 mb-4">
+                      {/* Grid Ringkasan Total, Good, Not Good */}
+                      <div className="grid grid-cols-3 gap-2 text-center">
+                        <div className="bg-slate-100 p-2 rounded-xl">
+                          <div className="text-[10px] uppercase font-bold text-slate-500">Total</div>
+                          <div className="text-base font-black text-slate-800">{proj.totalPcs} Pcs</div>
+                        </div>
+                        <div className="bg-emerald-50 p-2 rounded-xl">
+                          <div className="text-[10px] uppercase font-bold text-emerald-600">Good</div>
+                          <div className="text-base font-black text-emerald-700">{proj.summaryGood}</div>
+                        </div>
+                        <div className="bg-rose-50 p-2 rounded-xl">
+                          <div className="text-[10px] uppercase font-bold text-rose-600">Not Good</div>
+                          <div className="text-base font-black text-rose-700">{proj.summaryNG}</div>
+                        </div>
+                      </div>
+
+                      {/* Rekapitulasi Job */}
+                      <div className="bg-indigo-50/50 border border-indigo-100 p-2.5 rounded-xl">
+                        <div className="text-[10px] uppercase font-bold text-indigo-600 mb-1.5">Rekap Job:</div>
+                        {Object.keys(jobCounts).length === 0 ? (
+                          <div className="text-xs text-slate-400">-</div>
+                        ) : (
+                          <div className="flex flex-wrap gap-1.5">
+                            {Object.entries(jobCounts).map(([jobName, count]) => (
+                              <span key={jobName} className="text-[10px] bg-white border border-indigo-200 text-indigo-900 font-semibold px-2 py-0.5 rounded-md shadow-2xs">
+                                {jobName} : <strong className="text-indigo-600">{count}</strong>
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+                      <span className="text-xs text-indigo-600 font-bold group-hover:underline flex items-center gap-1">
+                        Lihat Detail QC <ArrowRight size={14} />
+                      </span>
+                      {(userRole === "admin" || userRole === "super_admin") && (
+                        <button
+                          onClick={(e) => handleOpenEditProject(proj, e)}
+                          className="text-slate-500 hover:text-indigo-600 p-1.5 rounded-lg hover:bg-slate-100 transition"
+                          title="Edit Project"
+                        >
+                          <Edit size={16} />
+                        </button>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
