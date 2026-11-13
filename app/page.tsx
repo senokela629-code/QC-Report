@@ -11,6 +11,7 @@ interface QCItem {
   id: string;
   photo: string;
   jobs: string[];
+  typeItem: string;
   optionQC: "Good" | "Not Good";
   ngReasons: {
     [key: string]: any;
@@ -134,6 +135,7 @@ export default function Home() {
         id: "1",
         photo: "",
         jobs: [],
+        typeItem: "AE",
         optionQC: "Good",
         ngReasons: {},
         kurangKomponen: false,
@@ -160,6 +162,7 @@ export default function Home() {
         id: (prev.length + 1).toString(),
         photo: "",
         jobs: [],
+        typeItem: "AE",
         optionQC: "Good",
         ngReasons: {},
         kurangKomponen: false,
@@ -662,6 +665,7 @@ export default function Home() {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {/* Kolom 1: Foto Dokumentasi */}
                       <div className="flex flex-col gap-2">
                         <label className="text-xs font-bold text-slate-700">Foto Dokumentasi * (Original Quality)</label>
                         <div className="aspect-video md:aspect-square bg-slate-100 rounded-xl border-2 border-dashed border-slate-300 flex flex-col items-center justify-center overflow-hidden relative group">
@@ -684,6 +688,7 @@ export default function Home() {
                         </div>
                       </div>
 
+                      {/* Kolom 2: Check Job */}
                       <div className="flex flex-col gap-2">
                         <label className="text-xs font-bold text-slate-700">Check Job (Pilih min. 1) *</label>
                         <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2 max-h-48 overflow-y-auto">
@@ -701,33 +706,59 @@ export default function Home() {
                         </div>
                       </div>
 
+                      {/* Kolom 3: Type, Option QC, Alasan Not Good, dan Komponen Kurang */}
                       <div className="flex flex-col gap-3">
-                        <label className="text-xs font-bold text-slate-700">Option QC *</label>
-                        <div className="grid grid-cols-2 gap-2">
-                          <button
-                            type="button"
-                            onClick={() => handleItemChange(index, "optionQC", "Good")}
-                            className={`py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition ${
-                              item.optionQC === "Good"
-                                ? "bg-emerald-600 text-white shadow-sm"
-                                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                            }`}
-                          >
-                            <CheckCircle size={14} /> Good
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleItemChange(index, "optionQC", "Not Good")}
-                            className={`py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition ${
-                              item.optionQC === "Not Good"
-                                ? "bg-rose-600 text-white shadow-sm"
-                                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                            }`}
-                          >
-                            <XCircle size={14} /> Not Good
-                          </button>
+                        {/* Selector Type */}
+                        <div className="flex flex-col gap-1.5">
+                          <label className="text-xs font-bold text-slate-700">Type *</label>
+                          <div className="grid grid-cols-2 gap-2">
+                            {["AE", "BA"].map((t) => (
+                              <button
+                                key={t}
+                                type="button"
+                                onClick={() => handleItemChange(index, "typeItem", t)}
+                                className={`py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center transition ${
+                                  item.typeItem === t
+                                    ? "bg-indigo-600 text-white shadow-sm"
+                                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                                }`}
+                              >
+                                {t}
+                              </button>
+                            ))}
+                          </div>
                         </div>
 
+                        {/* Selector Option QC */}
+                        <div className="flex flex-col gap-1.5">
+                          <label className="text-xs font-bold text-slate-700">Option QC *</label>
+                          <div className="grid grid-cols-2 gap-2">
+                            <button
+                              type="button"
+                              onClick={() => handleItemChange(index, "optionQC", "Good")}
+                              className={`py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition ${
+                                item.optionQC === "Good"
+                                  ? "bg-emerald-600 text-white shadow-sm"
+                                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                              }`}
+                            >
+                              <CheckCircle size={14} /> Good
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleItemChange(index, "optionQC", "Not Good")}
+                              className={`py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition ${
+                                item.optionQC === "Not Good"
+                                  ? "bg-rose-600 text-white shadow-sm"
+                                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                              }`}
+                            >
+                              <XCircle size={14} /> Not Good
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Alasan Not Good */}
                         {item.optionQC === "Not Good" && (
                           <div className="bg-rose-50 border border-rose-200 rounded-xl p-3 space-y-2">
                             <span className="text-[11px] font-bold text-rose-800 block">Alasan Not Good:</span>
@@ -756,8 +787,8 @@ export default function Home() {
                           </div>
                         )}
 
-                        {/* Kotak Komponen Kurang Universal (Didalam card item QC) */}
-                        <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 space-y-2 mt-2">
+                        {/* Kotak Komponen Kurang (Universal) */}
+                        <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 space-y-2">
                           <label className="flex items-center gap-2 text-xs text-amber-900 font-semibold cursor-pointer">
                             <input
                               type="checkbox"
@@ -903,6 +934,13 @@ export default function Home() {
 
                           <div className="text-slate-600 font-medium mb-1">
                             <strong className="text-slate-800">Job:</strong> {item.jobs && item.jobs.length > 0 ? item.jobs.join(", ") : "-"}
+                          </div>
+
+                          <div className="text-slate-600 font-medium mb-1 flex items-center gap-2 flex-wrap">
+                            <span className="bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded text-[10px] font-bold border border-indigo-100">
+                              Type: {item.typeItem || "AE"}
+                            </span>
+                            <div><strong className="text-slate-800">Job:</strong> {item.jobs && item.jobs.length > 0 ? item.jobs.join(", ") : "-"}</div>
                           </div>
 
                           {item.optionQC === "Not Good" && item.ngReasons && (
