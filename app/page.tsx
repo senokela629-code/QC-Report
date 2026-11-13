@@ -402,7 +402,7 @@ export default function Home() {
           >
             <div className="flex items-center gap-2 text-slate-800 font-bold text-sm">
               <Info className="text-indigo-600" size={18} />
-              <span>Keterangan Status, Alasan QC & Model Type</span>
+              <span>Keterangan</span>
             </div>
             <button 
               type="button" 
