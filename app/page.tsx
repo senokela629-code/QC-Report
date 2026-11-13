@@ -712,20 +712,28 @@ export default function Home() {
                         <div className="flex flex-col gap-1.5">
                           <label className="text-xs font-bold text-slate-700">Type *</label>
                           <div className="grid grid-cols-2 gap-2">
-                            {["AE", "BA"].map((t) => (
-                              <button
-                                key={t}
-                                type="button"
-                                onClick={() => handleItemChange(index, "typeItem", t)}
-                                className={`py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center transition ${
-                                  item.typeItem === t
-                                    ? "bg-indigo-600 text-white shadow-sm"
-                                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                                }`}
-                              >
-                                {t}
-                              </button>
-                            ))}
+                            {["AE", "BA"].map((t) => {
+                              const isSelected = item.typeItem === t;
+                              let activeColor = "bg-indigo-600 text-white shadow-sm"; // Ungu untuk AE
+                              if (t === "BA") {
+                                activeColor = "bg-amber-600 text-white shadow-sm"; // Oranye/Amber kontras untuk BA
+                              }
+
+                              return (
+                                <button
+                                  key={t}
+                                  type="button"
+                                  onClick={() => handleItemChange(index, "typeItem", t)}
+                                  className={`py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center transition ${
+                                    isSelected
+                                      ? activeColor
+                                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                                  }`}
+                                >
+                                  {t}
+                                </button>
+                              );
+                            })}
                           </div>
                         </div>
 
@@ -897,78 +905,71 @@ export default function Home() {
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {selectedProject.items.map((item, idx) => (
-                    <div key={idx} className="bg-white border border-slate-200 rounded-2xl p-4 flex gap-4 shadow-2xs">
-                      <div className="w-28 h-28 bg-slate-100 rounded-xl overflow-hidden shrink-0 border border-slate-200 relative group">
+                    <div key={idx} className="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex flex-col sm:flex-row gap-4 items-start shadow-2xs">
+                      {/* Foto Item */}
+                      <div className="w-full sm:w-28 h-28 bg-slate-200 rounded-xl overflow-hidden relative shrink-0 border border-slate-300">
                         {item.photo ? (
-                          <>
-                            <img src={item.photo} alt={`Item ${item.id}`} className="w-full h-full object-cover" />
-                            <a 
-                              href={item.photo} 
-                              target="_blank" 
-                              rel="noreferrer" 
-                              className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white text-[10px] font-bold underline"
-                            >
-                              Buka Asli
-                            </a>
-                          </>
+                          <img src={item.photo} alt={`Item ${item.id}`} className="w-full h-full object-cover" />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center text-slate-400">
-                            <ImageIcon size={20} />
-                          </div>
+                          <div className="w-full h-full flex items-center justify-center text-slate-400 text-xs">No Photo</div>
                         )}
-                        <span className="absolute bottom-1 left-1 bg-black/70 text-white text-[10px] px-1.5 py-0.5 rounded font-bold pointer-events-none">
+                        <span className="absolute bottom-1 left-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded font-bold">
                           #{item.id}
                         </span>
                       </div>
 
-                      <div className="flex-1 flex flex-col justify-between text-xs space-y-1">
-                        <div>
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="font-bold text-slate-900">Item #{item.id}</span>
-                            <span className={`px-2 py-0.5 rounded-full font-bold ${
-                              item.optionQC === "Good" ? "bg-emerald-100 text-emerald-800" : "bg-rose-100 text-rose-800"
-                            }`}>
-                              {item.optionQC}
-                            </span>
-                          </div>
-
-                          <div className="text-slate-600 font-medium mb-1">
-                            <strong className="text-slate-800">Job:</strong> {item.jobs && item.jobs.length > 0 ? item.jobs.join(", ") : "-"}
-                          </div>
-
-                          <div className="text-slate-600 font-medium mb-1 flex items-center gap-2 flex-wrap">
-                            <span className="bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded text-[10px] font-bold border border-indigo-100">
-                              Type: {item.typeItem || "AE"}
-                            </span>
-                            <div><strong className="text-slate-800">Job:</strong> {item.jobs && item.jobs.length > 0 ? item.jobs.join(", ") : "-"}</div>
-                          </div>
-
-                          {item.optionQC === "Not Good" && item.ngReasons && (
-                            <div className="text-rose-700 font-medium bg-rose-50 p-1.5 rounded-lg mb-1">
-                              <div><strong>Alasan:</strong> {
-                                Object.entries(item.ngReasons)
-                                  .filter(([key, val]) => val === true && !key.endsWith("_detail"))
-                                  .map(([key]) => {
-                                    const detail = item.ngReasons[`${key}_detail`];
-                                    return detail ? `${key} (${detail})` : key;
-                                  })
-                                  .join(", ") || "-"
-                              }</div>
-                            </div>
-                          )}
-
-                          {item.note && (
-                            <div className="text-slate-500 italic">
-                              &ldquo;{item.note}&rdquo;
-                            </div>
-                          )}
-
-                          {item.kurangKomponen && (
-                            <div className="text-amber-800 font-medium bg-amber-50 p-1.5 rounded-lg mb-1">
-                              <div><strong>Komponen Kurang:</strong> {item.kurangKomponenDetail || "Ya"}</div>
-                            </div>
-                          )}
+                      {/* Informasi Detail Item */}
+                      <div className="flex-1 space-y-2 w-full">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-bold text-slate-900 text-sm">Item #{item.id}</h4>
+                          <span className={`px-2.5 py-1 rounded-full text-xs font-bold flex items-center gap-1 ${
+                            item.optionQC === "Good" ? "bg-emerald-100 text-emerald-800" : "bg-rose-100 text-rose-800"
+                          }`}>
+                            {item.optionQC === "Good" ? <CheckCircle size={12} /> : <XCircle size={12} />}
+                            {item.optionQC}
+                          </span>
                         </div>
+
+                        {/* Badge Type (Ungu untuk AE, Amber untuk BA) */}
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${
+                            item.typeItem === "BA" 
+                              ? "bg-amber-50 text-amber-800 border-amber-200" 
+                              : "bg-indigo-50 text-indigo-700 border-indigo-100"
+                          }`}>
+                            Type: {item.typeItem || "AE"}
+                          </span>
+                        </div>
+
+                        {/* Daftar Job */}
+                        <div className="text-xs text-slate-700">
+                          <strong className="text-slate-900">Job:</strong> {item.jobs && item.jobs.length > 0 ? item.jobs.join(", ") : "-"}
+                        </div>
+
+                        {/* Alasan Not Good (Jika ada) */}
+                        {item.optionQC === "Not Good" && item.ngReasons && Object.keys(item.ngReasons).length > 0 && (
+                          <div className="text-xs text-rose-700 bg-rose-50 border border-rose-200 p-2 rounded-xl">
+                            <strong className="font-bold">Alasan Not Good:</strong>{" "}
+                            {Object.entries(item.ngReasons)
+                              .filter(([_, val]) => val)
+                              .map(([reason]) => reason)
+                              .join(", ") || "-"}
+                          </div>
+                        )}
+
+                        {/* Komponen Kurang Universal (Jika ada) */}
+                        {item.kurangKomponen && (
+                          <div className="text-xs text-amber-800 bg-amber-50 border border-amber-200 p-2 rounded-xl">
+                            <strong className="font-bold">Komponen Kurang:</strong> {item.kurangKomponenDetail || "Ya"}
+                          </div>
+                        )}
+
+                        {/* Catatan / Note (Jika ada) */}
+                        {item.note && (
+                          <div className="text-xs text-slate-600 italic">
+                            <strong>Note:</strong> {item.note}
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}
